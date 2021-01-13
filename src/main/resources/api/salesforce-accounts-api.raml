@@ -1,0 +1,56 @@
+#%RAML 1.0
+title: SalesForce-Accounts-Api
+
+protocols: [HTTPS]
+
+traits:
+  errorResponse: !include traits/errorTrait.raml
+
+/accounts:
+  get:
+    is: [errorResponse]
+    description: Fetch Accounts based on Id
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include examples/accounts.json   
+
+  post:
+    is: [errorResponse]
+    description: Create Accounts
+    responses:
+      201:
+        body:
+          application/json:
+            example: !include examples/accountsResponse.json
+  put:
+    is: [errorResponse]
+    description: Create Accounts
+    body:
+      application/json:
+        example: !include examples/accountsPut.json
+    responses:
+       201:
+         body:
+           application/json:
+             example: !include examples/accountsResponse.json    
+          
+  /{Name}:
+    get:
+      is: [errorResponse]
+      description: Fetch Single Account
+      responses:
+        200:
+          body:
+            application/json:
+              example: !include examples/accounts.json
+    delete:
+      is: [errorResponse]
+      description: Fetch Accounts based on Id
+      responses:
+       200:
+        body:
+          application/json:
+            example: !include examples/accounts.json    
+            

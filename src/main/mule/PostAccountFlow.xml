@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<file:config name="File_Config1" doc:name="File Config" doc:id="d10cf0c1-c9ae-4d4a-9bda-5521346c625c" >
+		<file:connection workingDir="D:\MS_Project_Workspace\mulesoft-salesforce-accountsintegration-api" />
+	</file:config>
+	<flow name="PostAccountFlowSub_Flow" doc:id="4f33ed70-0c52-4f24-88cd-132bc4260af7">
+		<file:listener doc:name="On New or Updated File" doc:id="5f147f00-5d10-44a6-af17-e4f4086167a6" config-ref="File_Config1" directory="src\main\resources\createAccountsJson" autoDelete="true">
+			<scheduling-strategy>
+				<fixed-frequency frequency="20000"/>
+			</scheduling-strategy>
+		</file:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="83b70a6d-0dca-4faf-8563-0e371a8b7a82" message='#["Initiating Account Create"]'/>
+		<flow-ref doc:name="Flow Reference" doc:id="cb7fa977-d2ce-4a36-a73f-87031afe8fcb" name="createAccountsPostFlowSub_Flow" />
+	</flow>
+	<sub-flow name="createAccountsPostFlowSub_Flow" doc:id="5e46df6e-3f7d-463e-858c-e913b0bee57c">
+		<set-variable value='#["createAccountsPostFlowSub_Flow"]' doc:name="subFlowNameVar" doc:id="b6d09953-ca34-473b-a23f-ce5af7cb098f" variableName="flowVar" />
+		<logger level="INFO" doc:name="subFlowEntryLogger" doc:id="a6ffafec-3657-42e2-b606-7d2718bcbe5f" message='#["Started Flow: " ++ vars.flowVar]' />
+		<flow-ref doc:name="readAccountCsvFileSub_FlowReference" doc:id="77c0dd69-27cf-402a-9cba-ba7399ca9687" name="readCreateAccountJsonFileSub_Flow" />
+		<logger level="INFO" doc:name="Logger" doc:id="0d39c69d-1fcb-4f21-b431-9f172ad81982" message='#["Completed Flow: " ++ vars.flowVar]' />
+	</sub-flow>
+	<sub-flow name="readCreateAccountJsonFileSub_Flow" doc:id="d198ff01-2d0b-4ac2-9e05-8b75eda0f667" >
+		<set-variable value='#["readAccountCsvFileSub_Flow"]' doc:name="subFlowNameVar" doc:id="1217b184-3764-425b-9d27-c2d67c77708c" variableName="subFlowNameVar"/>
+		<logger level="INFO" doc:name="subFlowEntryLogger" doc:id="2b05bd89-80d9-44b7-9255-94e4995800d6" message='#["Started Flow: " ++ vars.flowVar]'/>
+		<ee:transform doc:name="Transform Message" doc:id="cc85dea9-352c-4b81-b350-856de896ef49">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map (items,index)->
+{
+	Name:items.name,
+	BillingStreet:items.billingAddress,
+	BillingCity:items.billingCity,
+	BillingState:items.billingState,
+	BillingCountry:items.billingCountry,
+	BillingPostalCode:items.billingPostalCode
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="054b2a59-dd32-47fa-9b83-30e55fa2eb5e" message="#[payload]"/>
+		<flow-ref doc:name="createAccountConnectorSfSub_FlowReference" doc:id="cb5621ca-7c83-4769-ae42-a879e20fac28" name="createAccountConnectorSfSub_Flow"/>
+	</sub-flow>
+	<sub-flow name="createAccountConnectorSfSub_Flow" doc:id="4cb08409-11a8-40aa-9f9d-8da0f9634902" >
+		<set-variable value='#["createAccountConnectorSfSub_Flow"]' doc:name="subFlowNameVar" doc:id="18658fd0-3fd4-421b-9192-f62c03c1473c" variableName="subFlowNameVar"/>
+		<logger level="INFO" doc:name="subFlowEntryLogger" doc:id="cf5e9cda-30b1-4bfc-8f7a-487b989dafbb" message='#["Started Flow: " ++ vars.flowVar]'/>
+		<salesforce:create type="Account" doc:name="Create Accounts" doc:id="f0292c44-ac2b-4eaf-84a8-d51d00f37afb" config-ref="Salesforce_Config_SystemA" />
+		<ee:transform doc:name="Transform Message" doc:id="3db05f19-fefd-4a53-a706-33c53ed5c1d4">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="875bd4ea-d339-40b8-9788-69f738767611" message="#[payload]"/>
+	</sub-flow>
+</mule>

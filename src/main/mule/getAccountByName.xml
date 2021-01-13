@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<sub-flow name='getAccountByNameSub_Flow' doc:id="79e0e80d-44e4-467a-8f29-b15c2be3dc6c" >
+		<set-variable value='#["getAccountByNameSub_Flow"]' doc:name="setSubFlowName" doc:id="5d218081-a530-4bb5-8cae-41d0e6062e3c" variableName="subFlowNameVar" />
+		<logger level="INFO" doc:name="subFlowEntryLogger" doc:id="48f84a8c-f33c-4f08-a60b-20640a952b62" message='#[" Sub Flow Started: " ++ vars.subFlowNameVar]' />
+		<salesforce:query doc:name="FetchAccountByNameFromSF" doc:id="819e7933-9c88-469b-83c1-85a811cee869" config-ref="Salesforce_Config_SystemA">
+			<salesforce:salesforce-query >Select Id, Name, BillingCountry, BillingCity, BillingStreet, BillingPostalCode from Account where Name=':namveVar'</salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	namveVar : attributes.uriParams.Name
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="convertToJson" doc:id="7eb1f5cd-71b7-4416-bf15-d39e401b9faa">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="writeInJsonFile" doc:id="d9e0620f-0284-4b65-a9fa-c6d8d5141dcd" config-ref="File_Config" path="src\main\resources\GetJsonOutput\Account.json" />
+		<logger level="INFO" doc:name="jsonDataLogger" doc:id="e3907ae3-4ec7-4e56-8d58-91ee51c1bb85" message="#[payload]" />
+		<flow-ref doc:name="convertToCsvSub_FlowReference" doc:id="def72e45-0ce3-408b-86a1-1e9431aff508" name="convertToCsvGetByNameSub_flow" />
+		<logger level="INFO" doc:name="subFlowExitLogger" doc:id="2f050092-36e9-4259-9aa9-42f9d068421c" message='#[" Sub Flow Started: " ++ vars.subFlowNameVar]' />
+	</sub-flow>
+	<sub-flow name="convertToCsvGetByNameSub_flow" doc:id="26ed0ee0-f573-4790-bace-31e80d8bfcac" >
+		<set-variable value='#["convertToCsvByIdSub_flow"]' doc:name="setSubFlowName" doc:id="10363756-5941-42e0-b985-f017cbc9e636" variableName="subFlowNameVar" />
+		<logger level="INFO" doc:name="subFlowExitLogger" doc:id="cd3f57ff-ec64-4c22-8a49-9dfa2d1e0642" message='#[" Sub Flow Started: " ++ vars.subFlowNameVar]' />
+		<ee:transform doc:name="convertToCsv" doc:id="058e2586-c76a-4b0e-8bd5-37042f103f57">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv quoteValues=false,separator=",", header=true, escape="\""
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="csvDataLogger" doc:id="06a4fc71-b73f-4d1c-abeb-e0ae07f5c6d5" message="#[payload]" />
+		<flow-ref doc:name="writeToFileByIdSub_FlowReference" doc:id="42d798fd-2aec-420e-a1f5-f72aaa2769e4" name="writeToFileGetByNameSub_flow" />
+	</sub-flow>
+	<sub-flow name="writeToFileGetByNameSub_flow" doc:id="d996a2d3-b6ca-4c52-8944-17da5473c4f7" >
+		<set-variable value='#["writeToFileByIdSub_Flow"]' doc:name="setSubFlowName" doc:id="0b9819b4-ce16-464f-840f-14009613e698" variableName="subFlowNameVar" />
+		<logger level="INFO" doc:name="subFlowEntryLogger" doc:id="86555adf-cf04-41d4-8c17-024020f52701" message='#[" Sub Flow Started: " ++ vars.subFlowNameVar]' />
+		<file:write doc:name="writeInCsvFile" doc:id="3968370a-a3bd-4e71-bdee-dbbda181c1e5" config-ref="File_Config" path="src\main\resources\GetCsvOutput\Account.csv" />
+		<logger level="INFO" doc:name="Write Completion Logger" doc:id="93b99049-0514-4115-b8ac-3df937fc368d" message="#['Write to File was successful']" />
+	</sub-flow>
+</mule>

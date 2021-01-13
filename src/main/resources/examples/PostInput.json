@@ -1,0 +1,29 @@
+[
+  {
+    "ID": "cust12345",
+    "name": "Steve Rogers",
+    "billingAddress": "Road A",
+    "billingCity": "City1",
+    "billingCountry": "UK",
+    "billingPostalCode": "482003",
+    "billingState": "US"
+  },
+  {
+    "ID": "cust12325",
+    "name": "Ray Holt",
+    "billingAddress": "Road B",
+    "billingCity": "City2",
+    "billingCountry": "",
+    "billingPostalCode": "482003",
+    "billingState": "US"
+  },
+  {
+    "ID": "cust12349",
+    "name": "Charles Boyle",
+    "billingAddress": "Road C",
+    "billingCity": "City2",
+    "billingCountry": "",
+    "billingPostalCode": "482003",
+    "billingState": "US"
+  }
+]

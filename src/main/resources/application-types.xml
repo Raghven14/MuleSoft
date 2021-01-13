@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="getAccounts" format="json">
+      <types:shape format="weave" example="examples/getAccountsexample-1.json"><![CDATA[%dw 2.0
+
+type getAccounts = Array<{|  ID: String,   name: String,   accountNumber: String,   ownerId: String,   site: String,   accountSource: String,   active__c: String,   annualRevenue: String,   billingAddress: String,   billingCity: String,   billingCountry: String,   billingPostalCode: String,   billingState: String|}> {"example": "[{\\\"ID\\\":\\\"0012w0000037EnoAAq\\\",\\\"name\\\":\\\"Steve Rogers\\\",\\\"accountNumber\\\":\\\"CD355119-Aa\\\",\\\"ownerId\\\":\\\"0052w00000107nzAAa\\\",\\\"site\\\":\\\"empty\\\",\\\"accountSource\\\":\\\"\\\",\\\"active__c\\\":\\\"454654q\\\",\\\"annualRevenue\\\":\\\"2433354\\\",\\\"billingAddress\\\":\\\"Road A\\\",\\\"billingCity\\\":\\\"City1\\\",\\\"billingCountry\\\":\\\"UK\\\",\\\"billingPostalCode\\\":\\\"482003\\\",\\\"billingState\\\":\\\"US\\\"},{\\\"ID\\\":\\\"0012w0000037Enoqww\\\",\\\"name\\\":\\\"Ray Holt\\\",\\\"accountNumber\\\":\\\"CD355119-Aa\\\",\\\"ownerId\\\":\\\"0052w00000107nzAAa\\\",\\\"site\\\":\\\"empty\\\",\\\"accountSource\\\":\\\"\\\",\\\"active__c\\\":\\\"454654q\\\",\\\"annualRevenue\\\":\\\"2433354\\\",\\\"billingAddress\\\":\\\"Road B\\\",\\\"billingCity\\\":\\\"City2\\\",\\\"billingCountry\\\":\\\"\\\",\\\"billingPostalCode\\\":\\\"482003\\\",\\\"billingState\\\":\\\"US\\\"},{\\\"ID\\\":\\\"0012w0000037Enogth\\\",\\\"name\\\":\\\"Charles Boyle\\\",\\\"accountNumber\\\":\\\"CD355119-Aa\\\",\\\"ownerId\\\":\\\"0052w00000107nzAAa\\\",\\\"site\\\":\\\"empty\\\",\\\"accountSource\\\":\\\"\\\",\\\"active__c\\\":\\\"454654q\\\",\\\"annualRevenue\\\":\\\"2433354\\\",\\\"billingAddress\\\":\\\"Road C\\\",\\\"billingCity\\\":\\\"City2\\\",\\\"billingCountry\\\":\\\"\\\",\\\"billingPostalCode\\\":\\\"482003\\\",\\\"billingState\\\":\\\"US\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="PostInput" format="json">
+      <types:shape format="weave" example="examples/PostInput.json"><![CDATA[%dw 2.0
+
+type PostInput = Array<{|  ID: String,   name: String,   billingAddress: String,   billingCity: String,   billingCountry: String,   billingPostalCode: String,   billingState: String|}> {"example": "[{\\\"ID\\\":\\\"cust12345\\\",\\\"name\\\":\\\"Steve Rogers\\\",\\\"billingAddress\\\":\\\"Road A\\\",\\\"billingCity\\\":\\\"City1\\\",\\\"billingCountry\\\":\\\"UK\\\",\\\"billingPostalCode\\\":\\\"482003\\\",\\\"billingState\\\":\\\"US\\\"},{\\\"ID\\\":\\\"cust12325\\\",\\\"name\\\":\\\"Ray Holt\\\",\\\"billingAddress\\\":\\\"Road B\\\",\\\"billingCity\\\":\\\"City2\\\",\\\"billingCountry\\\":\\\"\\\",\\\"billingPostalCode\\\":\\\"482003\\\",\\\"billingState\\\":\\\"US\\\"},{\\\"ID\\\":\\\"cust12349\\\",\\\"name\\\":\\\"Charles Boyle\\\",\\\"billingAddress\\\":\\\"Road C\\\",\\\"billingCity\\\":\\\"City2\\\",\\\"billingCountry\\\":\\\"\\\",\\\"billingPostalCode\\\":\\\"482003\\\",\\\"billingState\\\":\\\"US\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="test" format="java">
+      <types:shape format="java" element="org.mule.extension.http.api.HttpRequestAttributes"/>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#cc85dea9-352c-4b81-b350-856de896ef49">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="PostInput"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#4ce0b20b-8f3b-458b-9a40-b866c25d61d6">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="getAccounts"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#fdaee72b-2a24-4410-bd84-c2c3edaea1ec">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:attributes type="test"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

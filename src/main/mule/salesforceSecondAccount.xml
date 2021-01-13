@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sockets="http://www.mulesoft.org/schema/mule/sockets" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/sockets http://www.mulesoft.org/schema/mule/sockets/current/mule-sockets.xsd">
+	<salesforce:sfdc-config name="Salesforce_Config_SystemB" doc:name="Salesforce Config" doc:id="033e4e58-9787-468c-8b44-9f1aa62325e5" >
+		<salesforce:basic-connection username="raghven14@venom.com" password="Alpha@365" securityToken="R9I9jFRodjzyOjMDWZPykOs1D" />
+	</salesforce:sfdc-config>
+	<sub-flow name="salesforceSecondAccountSub_Flow" doc:id="2358b804-d20f-4836-8d4a-10d20b47c107" >
+		<salesforce:query doc:name="Query" doc:id="f634618e-7664-4b77-9fcd-2c48eac373a3" config-ref="Salesforce_Config_SystemB" >
+			<salesforce:salesforce-query >Select Id, Name, AccountNumber, OwnerId, Site, AccountSource, Active__c, AnnualRevenue, BillingCountry, BillingCity, BillingStreet, BillingPostalCode from Account</salesforce:salesforce-query>
+		</salesforce:query>
+	</sub-flow>
+</mule>

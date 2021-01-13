@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Uzumaki Naruto",
+    "billingAddress": "Road 1",
+    "billingCity": "Konoha",
+    "billingCountry": "UK",
+    "billingPostalCode": "412003",
+    "billingState": "US"
+  },
+  {
+    "name": "Hatake Kakashi",
+    "billingAddress": "Road B2",
+    "billingCity": "sand",
+    "billingCountry": "UK",
+    "billingPostalCode": "482303",
+    "billingState": "US"
+  },
+  {
+    "name": "Eren Yeager",
+    "billingAddress": "Road C",
+    "billingCity": "paradise",
+    "billingCountry": "UK",
+    "billingPostalCode": "482903",
+    "billingState": "US"
+  }
+]

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<salesforce:sfdc-config name="Salesforce_Config_SystemA" doc:name="Salesforce Config" doc:id="e2bc1b27-9aa7-4661-84c7-5ad0fabe3446" >
+		<salesforce:basic-connection username="raghav@aveva.com" password="Stark@6826" securityToken="YudtUQQHSnqgP7rqnbCMpr6lo" url="https://login.salesforce.com/services/Soap/u/49.0" />
+	</salesforce:sfdc-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="f3d8df8c-5214-408a-9055-1178da93c436" >
+		<file:connection workingDir="D:\MS_Project_Workspace\mulesoft-salesforce-accountsintegration-api" />
+	</file:config>
+	<sub-flow name="getAccountsFlowSub_Flow" doc:id="a213434b-32d4-4957-8510-5eb1c187baf3" >
+		<set-variable value="#['getAccountsFlowSub_Flow']" doc:name="setSubFlowName" doc:id="f9f4eab1-eb23-444d-adf7-4b6babd989f9" variableName="subFlowNameVar"/>
+		<logger level="INFO" doc:name="subFlowEntryLogger" doc:id="76f98a23-6df7-4420-b50d-6ef7d0a48688" message='#[" Sub Flow Started: " ++ vars.subFlowNameVar]' />
+		<salesforce:query doc:name="Query" doc:id="fda70aa2-9bf1-4274-8291-3fe3545edd72" config-ref="Salesforce_Config_SystemA">
+			<salesforce:salesforce-query >Select Id, Name, AccountNumber, OwnerId, Site, AccountSource, Active__c, AnnualRevenue, BillingCountry, BillingCity, BillingStreet, BillingPostalCode from Account</salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="convertToJson" doc:id="4ce0b20b-8f3b-458b-9a40-b866c25d61d6">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	ID: payload01.Id default "",
+	name: payload01.Name default "",
+	accountNumber: payload01.AccountNumber default "",
+	ownerId: payload01.OwnerId default "",
+	site: payload01.Site default "",
+	accountSource: payload01.AccountSource default "",
+	active__c: payload01.Active__c default "",
+	annualRevenue: payload01.AnnualRevenue default "",
+	billingAddress: payload01.BillingStreet default "" as String replace "," with ("") replace "\n" with (""),
+	billingCity: payload01.BillingCity default "",
+	billingCountry: payload01.BillingCountry default "",
+	billingPostalCode: payload01.BillingPostalCode default ""
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="writeInJsonFile" doc:id="3f65c25c-6625-41b6-8bb7-6029339fac25" config-ref="File_Config" path="src\main\resources\GetJsonOutput\Accounts.json" />
+		<logger level="INFO" doc:name="jsonDataLogger" doc:id="5f2bd0a6-b2c4-4d5e-8f68-c1044a373043" message="#[payload]"/>
+		<flow-ref doc:name="convertToCsvSub_FlowReference" doc:id="74f3b779-477f-4dc8-a404-7c8573049625" name="convertToCsvSub_Flow"/>
+		<logger level="INFO" doc:name="subFlowExitLogger" doc:id="3bfd90a5-ee4a-41ec-b4f8-c283c1742488" message='#[" Sub Flow Completed: " ++ vars.subFlowNameVar]'/>
+	</sub-flow>
+	<sub-flow name="convertToCsvSub_Flow" doc:id="cccf2d4c-b7c6-4f5e-ad32-3e32d0b4ae25" >
+		<set-variable value="#['convertToCsvSub_Flow']" doc:name="setSubFlowName" doc:id="a416f259-4ff4-4b26-be8f-5d757e4c0e92" variableName="subFlowNameVar" />
+		<logger level="INFO" doc:name="subFlowEntryLogger" doc:id="1fd05e88-0cb8-4f6e-930f-b0c5b49827d8" message='#[" Sub Flow Started: " ++ vars.subFlowNameVar]' />
+		<ee:transform doc:name="convertToCsv" doc:id="c75399b8-16d7-4e6d-9549-be884876a7d1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv quoteValues=true, separator=",", header = true
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="csvDataLogger" doc:id="3dc8a098-3b67-45c7-92ec-c3c2d146cabe" message="#[payload]"/>
+		<flow-ref doc:name="writeToFileSub_FlowReference" doc:id="fb92e96c-cf31-4bb3-845a-a5d5ce03fb88" name="writeToFileSub_Flow"/>
+	</sub-flow>
+	<sub-flow name="writeToFileSub_Flow" doc:id="91cdf2d0-a51b-45ca-883a-e9d64bf7a767" >
+		<set-variable value="#['writeToFileSub_Flow']" doc:name="setSubFlowName" doc:id="c655bea3-5f50-4693-92e3-7ca9a41dbebd" variableName="subFlowNameVar" />
+		<logger level="INFO" doc:name="subFlowEntryLogger" doc:id="d564161e-dbac-4093-9b22-be7f3fba9c82" message='#[" Sub Flow Started: " ++ vars.subFlowNameVar]' />
+		<file:write doc:name="writeInCsvFile" doc:id="88b257f0-d7d9-4859-85e9-247b95d7e510" config-ref="File_Config" path="src\main\resources\GetCsvOutput\Accounts.csv" />
+		<logger level="INFO" doc:name="writeDataLogger" doc:id="a158d037-c207-4429-8e88-40a34ffece44" message="#[payload]"/>
+	</sub-flow>
+</mule>

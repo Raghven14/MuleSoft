@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="deleteAccountFlowByIdSub_Flow" doc:id="f78f3995-f75b-4cc2-9c8f-fc6bd3d8789e" >
+		<set-variable value='#["deleteAccountFlowByIdSub_Flow"]' doc:name="subFlowNameVar" doc:id="6519e660-8779-4fd6-9cae-648806ee2c1d" variableName="subFlowNameVar" />
+		<logger level="INFO" doc:name="subFlowEntryLogger" doc:id="1a8c787d-f754-4104-9db9-3a3234ce7784" message='#[" Sub Flow Started: " ++ vars.subFlowNameVar]' />
+		<flow-ref doc:name="queryByNameDeleteAccountFlowByIdSub_FlowReference" doc:id="fdaee72b-2a24-4410-bd84-c2c3edaea1ec" name="queryByNameSub_Flow" target="subFlowname_DeleteAccounts"/>
+		<logger level="INFO" doc:name="subFlowEntryLogger" doc:id="73dd4e9b-0ace-4a34-b63a-d995296eed51" message='#[" Sub Flow Completed: " ++ vars.subFlowNameVar]' />
+	</sub-flow>
+	<sub-flow name="queryByNameSub_Flow" doc:id="a522c8bf-bd88-4f93-829d-191a692ad614" >
+		<set-variable value='#["queryByNameSub_Flow"]' doc:name="subFlowNameVar" doc:id="f9edc07c-7599-4cfc-81f7-a6cc5a5d46b2" variableName="subFlowNameVar" />
+		<logger level="INFO" doc:name="subFlowEntryLogger" doc:id="22ce3b84-fc28-40f4-a393-061a8fc24b9d" message='#[" Sub Flow Started: " ++ vars.subFlowNameVar]' />
+		<salesforce:query doc:name="FetchAccountByNameFromSF" doc:id="9bd5d622-8d41-4427-b2bb-525a012c4888" config-ref="Salesforce_Config_SystemA">
+			<salesforce:salesforce-query>Select Id, Name, BillingCountry, BillingCity, BillingStreet, BillingPostalCode from Account where Name=':name'</salesforce:salesforce-query>
+			<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	name : attributes.uriParams.Name
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="extractAccountRecordId" doc:id="cdb0ebe6-e8ad-4edc-b185-e0eca94d7214">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload map{
+	Id: $.Id
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="deleteAccountFlowByIdSub_FlowReference" doc:id="71103260-98f3-4d9f-9f4b-a675dbb9a1fc" name="deleteAccounRecordtFlowByIdSub_Flow"/>
+	</sub-flow>
+	<sub-flow name="deleteAccounRecordtFlowByIdSub_Flow" doc:id="cadfa2d7-f681-4f8d-a0b1-586ee3b8e608" >
+		<set-variable value='#["deleteAccounRecordtFlowByIdSub_Flow"]' doc:name="subFlowNameVar" doc:id="29b443e7-88a6-4c17-a470-32a766ff5fbe" variableName="subFlowNameVar" />
+		<logger level="INFO" doc:name="subFlowEntryLogger" doc:id="c6e835ee-5689-4a04-a1bd-b8eaff90a1b7" message='#[" Sub Flow Started: " ++ vars.subFlowNameVar]' />
+		<salesforce:delete doc:name="deleteAccountById" doc:id="73fdd4e5-f393-454e-b891-43593343e90b" config-ref="Salesforce_Config_SystemA">
+			<salesforce:ids><![CDATA[#[payload.Id]]]></salesforce:ids>
+		</salesforce:delete>
+		<ee:transform doc:name="convertPayloadToJson" doc:id="7d7825f4-9941-4ef5-88c3-3545cebea828">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="jsonDataLogger" doc:id="65d70aff-0baa-4e94-a469-0937e3a359ac" message="#[payload]" />
+	</sub-flow>
+</mule>

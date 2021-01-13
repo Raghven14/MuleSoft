@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<flow name="PutAccountFlowSub_Flow" doc:id="0944336e-e953-4fdb-9d25-30a80c9f3da2">
+		<file:listener doc:name="On New or Updated File" doc:id="eefa175e-c133-40b7-a906-f4c2d9671743" config-ref="File_Config1" directory="src\main\resources\updateAccountsJson" autoDelete="true">
+			<scheduling-strategy>
+				<fixed-frequency frequency="20000" />
+			</scheduling-strategy>
+		</file:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="ccac4ab8-646d-471e-b0e7-fab6aacafacf" message='#["Initiating Account Update"]' />
+		<flow-ref doc:name="Flow Reference" doc:id="d453d124-373f-429c-b2b6-620bf8283dcf" name="updateAccountsSub_Flow" />
+	</flow>
+	<sub-flow name="updateAccountsSub_Flow" doc:id="bacf1403-dbaa-4bc5-b094-6ef0596f8641">
+		<set-variable value='#["updateAccountsSub_Flow"]' doc:name="Set Variable" doc:id="923470b4-73b4-46f1-8e7d-5b2bdf3572a5" variableName="flowVar" />
+		<logger level="INFO" doc:name="Logger" doc:id="1020a00b-59ac-47da-8ca5-9ee8f9a35480" message='#["Started Flow: " ++ vars.flowVar]' />
+		<flow-ref doc:name="Flow Reference" doc:id="b5800028-b66b-4d8c-b2fd-522c542425c9" name="readUpdateAccountJsonFileSub_Flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="162516cd-fc1e-48b3-9dd9-4e0d68077bb4" message='#["Put Flow Completed" ++ vars.flowVar]' />
+	</sub-flow>
+	<sub-flow name="readUpdateAccountJsonFileSub_Flow" doc:id="abb18735-b5ef-497c-af37-7560667f9dc2">
+		<set-variable value='#["updateAccountsSub_Flow"]' doc:name="Set Variable" doc:id="ea2a606c-d420-425b-b79d-663862e474a0" variableName="flowVar" />
+		<logger level="INFO" doc:name="Copy_of_Logger" doc:id="6968edc0-2aea-4def-9572-8217450b50ad" message='#["Started Flow: " ++ vars.flowVar]' />
+		<ee:transform doc:name="Transform Message" doc:id="187769a2-af16-4469-8ef0-7ef0a68a19fc">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map (items,index) -> {
+	Id:items.id,
+	Name:items.name,
+	BillingStreet:items.billingAddress,
+	BillingCity:items.billingCity,
+	BillingState:items.billingState,
+	BillingCountry:items.billingCountry,
+	BillingPostalCode:items.billingPostalCode
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="dd6e3c3d-33c0-46c1-b544-a989cdc6b757" name="updateConnectorAccountsSub_Flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="d706bc71-a039-4c78-b1f1-b174efed1ae9" />
+	</sub-flow>
+	<sub-flow name="updateConnectorAccountsSub_Flow" doc:id="82970f62-4b78-491b-978d-2a6c3ba92027" >
+		<logger level="INFO" doc:name="Logger" doc:id="0a7d1fe2-8f07-400a-939e-0b57a843794f" message='#["Started Flow: " ++ vars.flowVar]' />
+		<set-variable value='#["updateAccountsSub_Flow"]' doc:name="Set Variable" doc:id="3867a60c-1b4c-422e-9e8d-13a28cb3c84e" variableName="flowVar" />
+		<logger level="INFO" doc:name="Logger" doc:id="95286334-240a-49b4-819e-1af0c3849029" />
+		<salesforce:update doc:name="Update" doc:id="f501d986-bff7-49f5-9aea-dff8ba6d1661" config-ref="Salesforce_Config_SystemA" type="Account" />
+		<ee:transform doc:name="Transform Message" doc:id="18cd9907-6dda-4e96-a923-00dc2946b90b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="b0895eb5-9f5d-4428-b294-2153475902e9" message="#[payload]" />
+	</sub-flow>
+</mule>
